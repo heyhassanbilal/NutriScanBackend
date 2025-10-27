@@ -6,13 +6,11 @@ const { PDFDocument } = require('pdf-lib');
 const OpenAI = require('openai');
 const fs = require('fs').promises;
 const path = require('path');
-const pdfjsLib = require('pdfjs-dist/legacy/build/pdf');
-const { createCanvas } = require('canvas');
+const { pdfToPng } = require('pdf-to-png-converter');
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5000;
-pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve('pdfjs-dist/legacy/build/pdf.worker.js');
 
 // Configure OpenAI
 const openai = new OpenAI({
@@ -85,43 +83,38 @@ async function isPDFScanned(filePath) {
   }
 }
 
-// Function to convert ALL pages of PDF to images
+// Function to convert ALL pages of PDF to images (Render-compatible)
 async function convertPDFToImages(filePath) {
   try {
-    const dataBuffer = await fs.readFile(filePath);
-    const loadingTask = pdfjsLib.getDocument({
-      data: new Uint8Array(dataBuffer),
-      useSystemFonts: true
+    // Create temp directory
+    await fs.mkdir('./uploads/temp', { recursive: true });
+    
+    const pngPages = await pdfToPng(filePath, {
+      outputFolder: './uploads/temp',
+      viewportScale: 3.0
+      // Don't specify pagesToProcess to get all pages by default
     });
     
-    const pdfDocument = await loadingTask.promise;
-    const numPages = pdfDocument.numPages;
+    console.log(`Converting ${pngPages.length} page(s) to images...`);
+    
     const images = [];
-    
-    console.log(`Converting ${numPages} page(s) to images...`);
-    
-    // Process all pages
-    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-      const page = await pdfDocument.getPage(pageNum);
-      
-      const viewport = page.getViewport({ scale: 3.0 }); // Higher scale = better quality for OCR
-      const canvas = createCanvas(viewport.width, viewport.height);
-      const context = canvas.getContext('2d');
-      
-      const renderContext = {
-        canvasContext: context,
-        viewport: viewport
-      };
-      
-      await page.render(renderContext).promise;
-      
-      // Convert canvas to base64 PNG
-      const base64Image = canvas.toBuffer('image/png').toString('base64');
+    for (let i = 0; i < pngPages.length; i++) {
+      const base64Image = pngPages[i].content.toString('base64');
       images.push(base64Image);
-      console.log(`Converted page ${pageNum}/${numPages}`);
+      console.log(`Converted page ${i + 1}/${pngPages.length}`);
     }
     
-    return images; // Return array of all page images
+    // Cleanup temp files
+    try {
+      const files = await fs.readdir('./uploads/temp');
+      for (const file of files) {
+        await fs.unlink(path.join('./uploads/temp', file));
+      }
+    } catch (cleanupError) {
+      console.warn('Cleanup warning:', cleanupError);
+    }
+    
+    return images;
   } catch (error) {
     console.error('Error converting PDF to images:', error);
     throw error;
