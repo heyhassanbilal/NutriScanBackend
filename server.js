@@ -45,8 +45,8 @@ const upload = multer({
 // app.use(cors());
 app.use(cors({
   origin: [
-    'https://nutri-scan-frontend.vercel.app',  // Your actual frontend URL
-    'http://localhost:3000'  // Keep for local development
+    'https://nutri-scan-frontend.vercel.app',  // actual frontend URL
+    'http://localhost:3000'  //local development
   ]
 }));
 app.use(express.json());
