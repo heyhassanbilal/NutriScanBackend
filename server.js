@@ -42,7 +42,13 @@ const upload = multer({
 });
 
 // Middleware
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  origin: [
+    'https://nutri-scan-frontend.vercel.app',  // Your actual frontend URL
+    'http://localhost:3000'  // Keep for local development
+  ]
+}));
 app.use(express.json());
 
 // Create uploads directory if it doesn't exist
