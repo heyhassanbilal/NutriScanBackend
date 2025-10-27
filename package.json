@@ -1,0 +1,33 @@
+{
+  "name": "pdf-allergen-extractor-backend",
+  "version": "1.0.0",
+  "description": "Backend for PDF allergen and nutritional value extraction",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "pdf",
+    "allergen",
+    "extraction",
+    "openai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "canvas": "^3.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^4.20.1",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
+    "pdf-poppler": "^0.2.3",
+    "pdfjs-dist": "^3.11.174"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
